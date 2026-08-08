@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.os.IBinder
 import android.view.*
 import android.widget.*
+import com.cocbot.AttackStrategy
 import com.cocbot.BotConfig
 import com.cocbot.BotLogger
 import com.cocbot.state.BotState
@@ -127,6 +128,28 @@ class FloatingWindowService : Service() {
         btnRow1.addView(btnStart); btnRow1.addView(btnPause); btnRow1.addView(btnStop)
         btnPanel.addView(btnRow1)
 
+        val btnRow2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 4, 0, 0)
+        }
+        val btnSandbox = Button(this).apply {
+            text = "🎮 SANDBOX"
+            textSize = 10f
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#FF6B35"))
+            layoutParams = LinearLayout.LayoutParams(0, 50, 1f).apply { marginEnd = 4 }
+        }
+        val btnLaunchCoc = Button(this).apply {
+            text = "⚔️ OPEN COC"
+            textSize = 10f
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#4A0E4E"))
+            layoutParams = LinearLayout.LayoutParams(0, 50, 1f)
+        }
+        btnRow2.addView(btnSandbox)
+        btnRow2.addView(btnLaunchCoc)
+        btnPanel.addView(btnRow2)
+
         // Loot info
         val tvLoot = TextView(this).apply {
             text = "🎯 -"
@@ -152,6 +175,22 @@ class FloatingWindowService : Service() {
             val bot = BotService.getInstance() ?: return@setOnClickListener
             if (bot.state.value == BotState.PAUSED) { bot.resumeBot(); btnPause.text = "⏸" }
             else { bot.pauseBot(); btnPause.text = "▶" }
+        }
+        btnSandbox.setOnClickListener {
+            BotConfig.attackStrategy = AttackStrategy.SANDBOX_ATTACK
+            BotConfig.autoSandboxOnVisit = true
+            BotLogger.info("🎮 [SANDBOX MODE] Mode Latihan Sandbox Diaktifkan!")
+            Toast.makeText(this, "Mode Sandbox Aktif!", Toast.LENGTH_SHORT).show()
+        }
+        btnLaunchCoc.setOnClickListener {
+            val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(launchIntent)
+                BotLogger.system("Membuka game Clash of Clans...")
+            } else {
+                Toast.makeText(this, "Clash of Clans (com.supercell.clashofclans) tidak terinstall!", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // Drag support

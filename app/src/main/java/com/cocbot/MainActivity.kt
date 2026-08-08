@@ -204,6 +204,29 @@ class MainActivity : AppCompatActivity() {
         })
         ll.addView(btnRow)
 
+        // Launch Clash of Clans & Quick Sandbox Buttons
+        val launchRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 4, 0, 12)
+        }
+        launchRow.addView(Button(this).apply {
+            text = "⚔️ BUKA CLASH OF CLANS"
+            setBackgroundColor(Color.parseColor("#4A0E4E"))
+            setTextColor(Color.WHITE)
+            textSize = 11f
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 6 }
+            setOnClickListener { launchClashOfClans() }
+        })
+        launchRow.addView(Button(this).apply {
+            text = "🎮 SANDBOX PRACTICE"
+            setBackgroundColor(Color.parseColor("#FF6B35"))
+            setTextColor(Color.WHITE)
+            textSize = 11f
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            setOnClickListener { launchSandboxPractice() }
+        })
+        ll.addView(launchRow)
+
         ll.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             addView(TextView(this@MainActivity).apply {
@@ -874,6 +897,26 @@ class MainActivity : AppCompatActivity() {
                 })
             }
         }
+    }
+
+    private fun launchClashOfClans() {
+        val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
+        if (launchIntent != null) {
+            startActivity(launchIntent)
+            BotLogger.system("Membuka game Clash of Clans...")
+        } else {
+            Toast.makeText(this, "Aplikasi Clash of Clans (com.supercell.clashofclans) tidak ditemukan di perangkat ini!", Toast.LENGTH_LONG).show()
+            BotLogger.error("Clash of Clans tidak terinstall.")
+        }
+    }
+
+    private fun launchSandboxPractice() {
+        BotConfig.attackStrategy = AttackStrategy.SANDBOX_ATTACK
+        BotConfig.autoSandboxOnVisit = true
+        BotLogger.info("🎮 [SANDBOX MODE] Mode Latihan Sandbox Diaktifkan!")
+        startBot()
+        launchClashOfClans()
+        Toast.makeText(this, "Mode Sandbox Aktif! Silakan Kunjungi (Visit) Desa Target di Clash of Clans untuk latihan.", Toast.LENGTH_LONG).show()
     }
 
     private fun startBot() {
