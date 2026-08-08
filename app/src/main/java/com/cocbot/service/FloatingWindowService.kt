@@ -9,9 +9,9 @@ import android.graphics.Typeface
 import android.os.IBinder
 import android.view.*
 import android.widget.*
-import com.cocbot.AttackStrategy
 import com.cocbot.BotConfig
 import com.cocbot.BotLogger
+import com.cocbot.root.RootShell
 import com.cocbot.state.BotState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
@@ -52,17 +52,20 @@ class FloatingWindowService : Service() {
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#CC1a1a2e"))
-            setPadding(8, 8, 8, 8)
+            setBackgroundColor(Color.parseColor("#EE101020"))
+            setPadding(12, 12, 12, 12)
         }
 
-        // Header - drag handle + expand button
-        val header = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        // Header - title & toggle button
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
 
         val tvTitle = TextView(this).apply {
-            text = "⚔️ COC Bot"
+            text = "🎮 XMOD SANDBOX"
             textSize = 12f
-            setTextColor(Color.parseColor("#FFD700"))
+            setTextColor(Color.parseColor("#FF6B35"))
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
@@ -72,125 +75,109 @@ class FloatingWindowService : Service() {
             textSize = 10f
             setTextColor(Color.WHITE)
             setBackgroundColor(Color.parseColor("#334466"))
-            layoutParams = LinearLayout.LayoutParams(60, 40)
+            layoutParams = LinearLayout.LayoutParams(60, 44)
         }
 
         header.addView(tvTitle)
         header.addView(btnToggle)
         root.addView(header)
 
-        // Status
-        val tvStatus = TextView(this).apply {
-            text = "Status: IDLE"
+        val tvRootState = TextView(this).apply {
+            text = "ROOT: ${if (RootShell.isRootAvailable) "⚡ GRANTED (SU)" else "❌ NO ROOT"}"
             textSize = 10f
-            setTextColor(Color.parseColor("#00FF88"))
+            setTextColor(if (RootShell.isRootAvailable) Color.parseColor("#00FF88") else Color.parseColor("#FF4444"))
+            setPadding(0, 4, 0, 4)
         }
-        root.addView(tvStatus)
+        root.addView(tvRootState)
 
-        // Stats
-        val tvStats = TextView(this).apply {
-            text = "🏆0 💛0 💜0"
+        val tvNetState = TextView(this).apply {
+            text = "NET: ${if (BotConfig.isNetworkBlocked) "🔒 ISOLATED (SANDBOX)" else "🌐 ONLINE"}"
             textSize = 10f
-            setTextColor(Color.WHITE)
+            setTextColor(if (BotConfig.isNetworkBlocked) Color.parseColor("#FFD700") else Color.parseColor("#888888"))
         }
-        root.addView(tvStats)
+        root.addView(tvNetState)
 
-        // Buttons panel (collapsed by default)
+        // Expanded Control Panel
         val btnPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             visibility = View.GONE
+            setPadding(0, 8, 0, 0)
         }
 
-        val btnRow1 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-
-        val btnStart = Button(this).apply {
-            text = "▶"
-            textSize = 11f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#00AA44"))
-            layoutParams = LinearLayout.LayoutParams(0, 60, 1f).apply { marginEnd = 4 }
-        }
-        val btnPause = Button(this).apply {
-            text = "⏸"
-            textSize = 11f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#FF8800"))
-            layoutParams = LinearLayout.LayoutParams(0, 60, 1f).apply { marginEnd = 4 }
-        }
-        val btnStop = Button(this).apply {
-            text = "⏹"
-            textSize = 11f
+        val btnBlockNet = Button(this).apply {
+            text = "🔒 CUT NETWORK (ISOLATE)"
+            textSize = 10f
             setTextColor(Color.WHITE)
             setBackgroundColor(Color.parseColor("#CC0000"))
-            layoutParams = LinearLayout.LayoutParams(0, 60, 1f)
+            setOnClickListener {
+                BotService.getInstance()?.enableNetworkIsolation()
+                tvNetState.text = "NET: 🔒 ISOLATED (SANDBOX)"
+                tvNetState.setTextColor(Color.parseColor("#FFD700"))
+            }
         }
+        btnPanel.addView(btnBlockNet)
 
-        btnRow1.addView(btnStart); btnRow1.addView(btnPause); btnRow1.addView(btnStop)
-        btnPanel.addView(btnRow1)
-
-        val btnRow2 = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 4, 0, 0)
+        val btnRestoreNet = Button(this).apply {
+            text = "🔓 RESTORE NETWORK"
+            textSize = 10f
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#00AA44"))
+            setOnClickListener {
+                BotService.getInstance()?.restoreNetwork()
+                tvNetState.text = "NET: 🌐 ONLINE"
+                tvNetState.setTextColor(Color.parseColor("#888888"))
+            }
         }
-        val btnSandbox = Button(this).apply {
-            text = "🎮 SANDBOX"
+        btnPanel.addView(btnRestoreNet)
+
+        val btnReveal = Button(this).apply {
+            text = "👁️ REVEAL TRAPS & TESLAS"
+            textSize = 10f
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#553399"))
+            setOnClickListener {
+                RootShell.applyTrapRevealPatch()
+                Toast.makeText(this@FloatingWindowService, "Trap & Tesla Patch Executed!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnPanel.addView(btnReveal)
+
+        val btnDeploy = Button(this).apply {
+            text = "⚔️ DEPLOY SANDBOX ARMY"
             textSize = 10f
             setTextColor(Color.WHITE)
             setBackgroundColor(Color.parseColor("#FF6B35"))
-            layoutParams = LinearLayout.LayoutParams(0, 50, 1f).apply { marginEnd = 4 }
+            setOnClickListener {
+                BotService.getInstance()?.triggerSandboxDeployment()
+            }
         }
-        val btnLaunchCoc = Button(this).apply {
-            text = "⚔️ OPEN COC"
+        btnPanel.addView(btnDeploy)
+
+        val btnOpenCoc = Button(this).apply {
+            text = "⚔️ LAUNCH CLASH OF CLANS"
             textSize = 10f
             setTextColor(Color.WHITE)
             setBackgroundColor(Color.parseColor("#4A0E4E"))
-            layoutParams = LinearLayout.LayoutParams(0, 50, 1f)
+            setOnClickListener {
+                val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(launchIntent)
+                    BotLogger.system("Opening Clash of Clans...")
+                } else {
+                    Toast.makeText(this@FloatingWindowService, "Clash of Clans not found!", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
-        btnRow2.addView(btnSandbox)
-        btnRow2.addView(btnLaunchCoc)
-        btnPanel.addView(btnRow2)
-
-        // Loot info
-        val tvLoot = TextView(this).apply {
-            text = "🎯 -"
-            textSize = 9f
-            setTextColor(Color.parseColor("#FFD700"))
-        }
-        btnPanel.addView(tvLoot)
+        btnPanel.addView(btnOpenCoc)
 
         root.addView(btnPanel)
         floatView = root
 
-        // Toggle expand
         btnToggle.setOnClickListener {
             expanded = !expanded
             btnPanel.visibility = if (expanded) View.VISIBLE else View.GONE
             btnToggle.text = if (expanded) "▲" else "▼"
-        }
-
-        // Button listeners
-        btnStart.setOnClickListener { BotService.getInstance()?.startBot() }
-        btnStop.setOnClickListener { BotService.getInstance()?.stopBot() }
-        btnPause.setOnClickListener {
-            val bot = BotService.getInstance() ?: return@setOnClickListener
-            if (bot.state.value == BotState.PAUSED) { bot.resumeBot(); btnPause.text = "⏸" }
-            else { bot.pauseBot(); btnPause.text = "▶" }
-        }
-        btnSandbox.setOnClickListener {
-            BotConfig.attackStrategy = AttackStrategy.SANDBOX_ATTACK
-            BotConfig.autoSandboxOnVisit = true
-            BotLogger.info("🎮 [SANDBOX MODE] Mode Latihan Sandbox Diaktifkan!")
-            Toast.makeText(this, "Mode Sandbox Aktif!", Toast.LENGTH_SHORT).show()
-        }
-        btnLaunchCoc.setOnClickListener {
-            val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
-            if (launchIntent != null) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(launchIntent)
-                BotLogger.system("Membuka game Clash of Clans...")
-            } else {
-                Toast.makeText(this, "Clash of Clans (com.supercell.clashofclans) tidak terinstall!", Toast.LENGTH_SHORT).show()
-            }
         }
 
         // Drag support
@@ -213,24 +200,19 @@ class FloatingWindowService : Service() {
 
         wm.addView(floatView, params)
 
-        // Observe state
         scope.launch {
             BotService.getInstance()?.state?.collectLatest { state ->
-                tvStatus.text = "Status: $state"
-            }
-        }
-        scope.launch {
-            BotService.getInstance()?.session?.collectLatest { sess ->
-                tvStats.text = "🏆${sess.totalMatches} 💛${"%,d".format(sess.totalGold/1000)}K 💜${"%,d".format(sess.totalElixir/1000)}K"
-            }
-        }
-        scope.launch {
-            BotService.getInstance()?.currentLoot?.collectLatest { ld ->
-                tvLoot.text = "🎯 G:${"%,d".format(ld.gold)} E:${"%,d".format(ld.elixir)}"
+                tvNetState.text = "STATUS: $state | NET: ${if (BotConfig.isNetworkBlocked) "🔒 ISOLATED" else "🌐 ONLINE"}"
             }
         }
     }
 
-    override fun onDestroy() { scope.cancel(); wm.removeView(floatView); instance = null; super.onDestroy() }
+    override fun onDestroy() {
+        scope.cancel()
+        wm.removeView(floatView)
+        instance = null
+        super.onDestroy()
+    }
+
     override fun onBind(i: Intent?): IBinder? = null
 }
