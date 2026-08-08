@@ -1,6 +1,6 @@
 {
-  "name": "COC Bot",
-  "description": "Bot untuk auto farming Clash of Clans menggunakan gesture otomatis",
+  "name": "CoC Gemini AI Bot",
+  "description": "Bot Auto Attack Clash of Clans berbasis Gemini AI Vision dan strategi cerdas",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

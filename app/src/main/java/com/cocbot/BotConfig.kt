@@ -4,63 +4,51 @@ import android.graphics.PointF
 
 object BotConfig {
 
-    // Sandbox Engine Configuration
-    var isRootEnabled: Boolean = true
-    var autoBlockNetworkOnVisit: Boolean = true
-    var revealTrapsAndTeslas: Boolean = true
-    var isNetworkBlocked: Boolean = false
-    var sandboxEndBattleDelaySeconds: Int = 30
+    // Gemini AI Configuration
+    var geminiApiKey: String = ""
+    var aiStrategyPreset: String = "Spam Electro Dragon + Balloons" // Options: "Spam Electro Dragon + Balloons", "BARCH Dead Base Farmer", "Gowipe Ground Smash", "Custom AI Gemini Decided"
+    var autoAiAttackOnFound: Boolean = true
+    var autoNextIfLootLow: Boolean = true
 
-    // Sandbox Army & Hero Configuration
-    val sandboxUnits = mutableListOf(
-        SandboxUnit("Barbarian", UnitType.TROOP, level = 10, count = 30, enabled = true, slotIndex = 0),
-        SandboxUnit("Archer", UnitType.TROOP, level = 10, count = 30, enabled = true, slotIndex = 1),
-        SandboxUnit("Giant", UnitType.TROOP, level = 10, count = 10, enabled = true, slotIndex = 2),
-        SandboxUnit("Wall Breaker", UnitType.TROOP, level = 9, count = 6, enabled = true, slotIndex = 3),
-        SandboxUnit("Wizard", UnitType.TROOP, level = 10, count = 12, enabled = true, slotIndex = 4),
-        SandboxUnit("Dragon", UnitType.TROOP, level = 9, count = 4, enabled = true, slotIndex = 5),
-        SandboxUnit("P.E.K.K.A", UnitType.TROOP, level = 9, count = 2, enabled = true, slotIndex = 6),
-        SandboxUnit("Electro Dragon", UnitType.TROOP, level = 5, count = 2, enabled = true, slotIndex = 7),
-        SandboxUnit("Barbarian King", UnitType.HERO, level = 85, count = 1, enabled = true, slotIndex = 8),
-        SandboxUnit("Archer Queen", UnitType.HERO, level = 85, count = 1, enabled = true, slotIndex = 9),
-        SandboxUnit("Grand Warden", UnitType.HERO, level = 60, count = 1, enabled = true, slotIndex = 10),
-        SandboxUnit("Royal Champion", UnitType.HERO, level = 35, count = 1, enabled = true, slotIndex = 11),
-        SandboxUnit("Rage Spell", UnitType.SPELL, level = 6, count = 3, enabled = true, slotIndex = 12),
-        SandboxUnit("Freeze Spell", UnitType.SPELL, level = 7, count = 3, enabled = true, slotIndex = 13)
-    )
+    // Minimum Loot Target Criteria
+    var minGoldTarget: Int = 200000
+    var minElixirTarget: Int = 200000
+    var minDarkElixirTarget: Int = 1000
 
-    // Touch Coordinates for Sandbox Deployment
-    val BTN_END_BATTLE = PointF(159f, 544f)
-    val BTN_OKAY = PointF(760f, 500f)
+    // Navigation Coordinates for Full Automation Loop
+    val BTN_HOME_ATTACK = PointF(120f, 650f)
+    val BTN_FIND_MATCH = PointF(1200f, 550f)
+    val BTN_NEXT_BASE = PointF(1530f, 540f)
+    val BTN_ATTACK_CONFIRM = PointF(1400f, 600f)
+    val BTN_END_BATTLE = PointF(150f, 540f)
+    val BTN_OKAY = PointF(800f, 500f)
+    val BTN_RETURN_HOME = PointF(150f, 540f)
 
-    val DEPLOY_TOP_START = PointF(300f, 75f)
-    val DEPLOY_TOP_END = PointF(1300f, 75f)
-    val DEPLOY_BOTTOM_START = PointF(300f, 560f)
-    val DEPLOY_BOTTOM_END = PointF(1300f, 560f)
-    val DEPLOY_LEFT_START = PointF(75f, 150f)
-    val DEPLOY_LEFT_END = PointF(75f, 480f)
-    val DEPLOY_RIGHT_START = PointF(1537f, 150f)
-    val DEPLOY_RIGHT_END = PointF(1537f, 480f)
+    // Deployment Lines
+    val DEPLOY_BOTTOM_LEFT_START = PointF(300f, 500f)
+    val DEPLOY_BOTTOM_LEFT_END = PointF(800f, 650f)
 
-    var delayMinMs = 200L
-    var delayMaxMs = 500L
+    val DEPLOY_BOTTOM_RIGHT_START = PointF(800f, 650f)
+    val DEPLOY_BOTTOM_RIGHT_END = PointF(1300f, 500f)
 
-    fun randomDelay(): Long {
-        return delayMinMs + (Math.random() * (delayMaxMs - delayMinMs)).toLong()
-    }
+    val DEPLOY_TOP_LEFT_START = PointF(300f, 500f)
+    val DEPLOY_TOP_LEFT_END = PointF(800f, 100f)
+
+    val DEPLOY_TOP_RIGHT_START = PointF(800f, 100f)
+    val DEPLOY_TOP_RIGHT_END = PointF(1300f, 500f)
+
+    // Troop Slot Buttons (Horizontal Bar at bottom of battle screen)
+    val SLOT_0 = PointF(120f, 660f)
+    val SLOT_1 = PointF(200f, 660f)
+    val SLOT_2 = PointF(280f, 660f)
+    val SLOT_3 = PointF(360f, 660f)
+    val SLOT_4 = PointF(440f, 660f)
+    val SLOT_5 = PointF(520f, 660f)
+    val SLOT_6 = PointF(600f, 660f)
+    val SLOT_7 = PointF(680f, 660f)
+    val SLOT_8 = PointF(760f, 660f)
+    val SLOT_9 = PointF(840f, 660f)
+
+    var delayBetweenWavesMs: Long = 400L
+    var endBattleWaitSec: Int = 120
 }
-
-enum class UnitType {
-    TROOP,
-    HERO,
-    SPELL
-}
-
-data class SandboxUnit(
-    val name: String,
-    val type: UnitType,
-    var level: Int,
-    var count: Int,
-    var enabled: Boolean,
-    var slotIndex: Int
-)

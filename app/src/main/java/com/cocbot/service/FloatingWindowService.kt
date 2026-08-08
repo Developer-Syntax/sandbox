@@ -11,7 +11,6 @@ import android.view.*
 import android.widget.*
 import com.cocbot.BotConfig
 import com.cocbot.BotLogger
-import com.cocbot.root.RootShell
 import com.cocbot.state.BotState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
@@ -52,20 +51,20 @@ class FloatingWindowService : Service() {
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#EE101020"))
+            setBackgroundColor(Color.parseColor("#EE0B0E14"))
             setPadding(12, 12, 12, 12)
         }
 
-        // Header - title & toggle button
+        // Header
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
 
         val tvTitle = TextView(this).apply {
-            text = "🎮 XMOD SANDBOX"
+            text = "🤖 GEMINI AI BOT"
             textSize = 12f
-            setTextColor(Color.parseColor("#FF6B35"))
+            setTextColor(Color.parseColor("#00E5FF"))
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
@@ -74,7 +73,7 @@ class FloatingWindowService : Service() {
             text = "▼"
             textSize = 10f
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#334466"))
+            setBackgroundColor(Color.parseColor("#1F2937"))
             layoutParams = LinearLayout.LayoutParams(60, 44)
         }
 
@@ -82,20 +81,13 @@ class FloatingWindowService : Service() {
         header.addView(btnToggle)
         root.addView(header)
 
-        val tvRootState = TextView(this).apply {
-            text = "ROOT: ${if (RootShell.isRootAvailable) "⚡ GRANTED (SU)" else "❌ NO ROOT"}"
+        val tvAiStatus = TextView(this).apply {
+            text = "STATUS: IDLE"
             textSize = 10f
-            setTextColor(if (RootShell.isRootAvailable) Color.parseColor("#00FF88") else Color.parseColor("#FF4444"))
+            setTextColor(Color.parseColor("#FFD700"))
             setPadding(0, 4, 0, 4)
         }
-        root.addView(tvRootState)
-
-        val tvNetState = TextView(this).apply {
-            text = "NET: ${if (BotConfig.isNetworkBlocked) "🔒 ISOLATED (SANDBOX)" else "🌐 ONLINE"}"
-            textSize = 10f
-            setTextColor(if (BotConfig.isNetworkBlocked) Color.parseColor("#FFD700") else Color.parseColor("#888888"))
-        }
-        root.addView(tvNetState)
+        root.addView(tvAiStatus)
 
         // Expanded Control Panel
         val btnPanel = LinearLayout(this).apply {
@@ -104,68 +96,57 @@ class FloatingWindowService : Service() {
             setPadding(0, 8, 0, 0)
         }
 
-        val btnBlockNet = Button(this).apply {
-            text = "🔒 CUT NETWORK (ISOLATE)"
+        val btnScanNow = Button(this).apply {
+            text = "👁️ GEMINI VISION SCAN"
             textSize = 10f
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#CC0000"))
+            setTypeface(null, Typeface.BOLD)
+            setBackgroundColor(Color.parseColor("#00E5FF"))
             setOnClickListener {
-                BotService.getInstance()?.enableNetworkIsolation()
-                tvNetState.text = "NET: 🔒 ISOLATED (SANDBOX)"
-                tvNetState.setTextColor(Color.parseColor("#FFD700"))
+                val screen = ScreenCaptureService.getInstance()?.captureScreen()
+                BotService.getInstance()?.triggerSingleAiAnalysisAndAttack(screen)
+                Toast.makeText(this@FloatingWindowService, "🤖 Memulai analisis Gemini AI Vision...", Toast.LENGTH_SHORT).show()
             }
         }
-        btnPanel.addView(btnBlockNet)
+        btnPanel.addView(btnScanNow)
 
-        val btnRestoreNet = Button(this).apply {
-            text = "🔓 RESTORE NETWORK"
+        val btnStartBot = Button(this).apply {
+            text = "⚔️ START AI AUTO ATTACK"
             textSize = 10f
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#00AA44"))
+            setTypeface(null, Typeface.BOLD)
+            setBackgroundColor(Color.parseColor("#00C853"))
             setOnClickListener {
-                BotService.getInstance()?.restoreNetwork()
-                tvNetState.text = "NET: 🌐 ONLINE"
-                tvNetState.setTextColor(Color.parseColor("#888888"))
+                BotService.getInstance()?.startBot()
+                Toast.makeText(this@FloatingWindowService, "🤖 Bot Auto Attack Dimulai!", Toast.LENGTH_SHORT).show()
             }
         }
-        btnPanel.addView(btnRestoreNet)
+        btnPanel.addView(btnStartBot)
 
-        val btnReveal = Button(this).apply {
-            text = "👁️ REVEAL TRAPS & TESLAS"
+        val btnStopBot = Button(this).apply {
+            text = "🛑 STOP AI BOT"
             textSize = 10f
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#553399"))
+            setBackgroundColor(Color.parseColor("#D50000"))
             setOnClickListener {
-                RootShell.applyTrapRevealPatch()
-                Toast.makeText(this@FloatingWindowService, "Trap & Tesla Patch Executed!", Toast.LENGTH_SHORT).show()
+                BotService.getInstance()?.stopBot()
+                Toast.makeText(this@FloatingWindowService, "🛑 Bot Dihentikan", Toast.LENGTH_SHORT).show()
             }
         }
-        btnPanel.addView(btnReveal)
-
-        val btnDeploy = Button(this).apply {
-            text = "⚔️ DEPLOY SANDBOX ARMY"
-            textSize = 10f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#FF6B35"))
-            setOnClickListener {
-                BotService.getInstance()?.triggerSandboxDeployment()
-            }
-        }
-        btnPanel.addView(btnDeploy)
+        btnPanel.addView(btnStopBot)
 
         val btnOpenCoc = Button(this).apply {
-            text = "⚔️ LAUNCH CLASH OF CLANS"
+            text = "⚔️ OPEN CLASH OF CLANS"
             textSize = 10f
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#4A0E4E"))
+            setBackgroundColor(Color.parseColor("#6A1B9A"))
             setOnClickListener {
                 val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
                 if (launchIntent != null) {
                     launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(launchIntent)
-                    BotLogger.system("Opening Clash of Clans...")
                 } else {
-                    Toast.makeText(this@FloatingWindowService, "Clash of Clans not found!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@FloatingWindowService, "Clash of Clans tidak ditemukan!", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -202,7 +183,15 @@ class FloatingWindowService : Service() {
 
         scope.launch {
             BotService.getInstance()?.state?.collectLatest { state ->
-                tvNetState.text = "STATUS: $state | NET: ${if (BotConfig.isNetworkBlocked) "🔒 ISOLATED" else "🌐 ONLINE"}"
+                tvAiStatus.text = "STATUS: $state"
+                tvAiStatus.setTextColor(
+                    when (state) {
+                        BotState.IN_BATTLE -> Color.parseColor("#00E5FF")
+                        BotState.DEPLOYING_AI_ATTACK -> Color.parseColor("#00FF88")
+                        BotState.ANALYZING_WITH_GEMINI -> Color.parseColor("#FFD700")
+                        else -> Color.parseColor("#AAAAAA")
+                    }
+                )
             }
         }
     }
