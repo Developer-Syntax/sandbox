@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.COCBot" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF6B35</item>
+        <item name="colorPrimaryVariant">#CC4400</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor">#1a1a2e</item>
+        <item name="android:windowBackground">#0d0d1a</item>
+    </style>
+</resources>

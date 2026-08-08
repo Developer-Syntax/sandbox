@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="#1a1a2e">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚔️ COC Auto Farming Bot"
+        android:textColor="#FFD700"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="8dp"/>
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Status: IDLE"
+        android:textColor="#00FF88"
+        android:textSize="14sp"
+        android:paddingBottom="4dp"/>
+
+    <!-- Stats -->
+    <TextView
+        android:id="@+id/tv_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🏆 Match: 0\n💛 Gold: 0\n💜 Elixir: 0\n🖤 Dark Elixir: 0"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:background="#16213e"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Buttons Row 1 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="4dp">
+
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="▶ START"
+            android:backgroundTint="#00AA44"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_pause"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⏸ Pause"
+            android:backgroundTint="#FF8800"
+            android:textColor="#FFFFFF"
+            android:layout_marginEnd="4dp"/>
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⏹ STOP"
+            android:backgroundTint="#CC0000"
+            android:textColor="#FFFFFF"/>
+    </LinearLayout>
+
+    <!-- Log header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📋 LOG"
+            android:textColor="#FFD700"
+            android:textSize="13sp"
+            android:textStyle="bold"/>
+
+        <Button
+            android:id="@+id/btn_clear_log"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="Clear"
+            android:textSize="11sp"
+            android:backgroundTint="#333355"
+            android:textColor="#AAAAAA"/>
+    </LinearLayout>
+
+    <!-- Log area -->
+    <ScrollView
+        android:id="@+id/scroll_log"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#0d0d1a"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/tv_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#00FF88"
+            android:fontFamily="monospace"
+            android:textSize="11sp"
+            android:padding="8dp"
+            android:lineSpacingExtra="2dp"/>
+    </ScrollView>
+
+    <!-- Bottom stats bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#16213e"
+        android:padding="8dp"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/tv_gold_total"
+            android:text="Gold: 0"
+            android:textColor="#FFD700"
+            android:textSize="12sp"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/tv_elixir_total"
+            android:text="Elixir: 0"
+            android:textColor="#CC77FF"
+            android:textSize="12sp"
+            android:gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Jmlh Farming: 0"
+            android:textColor="#00FF88"
+            android:textSize="12sp"
+            android:gravity="end"
+            android:id="@+id/tv_match_count"/>
+    </LinearLayout>
+
+</LinearLayout>

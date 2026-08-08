@@ -1,0 +1,6 @@
+{
+  "name": "COC Bot",
+  "description": "Bot untuk auto farming Clash of Clans menggunakan gesture otomatis",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
