@@ -138,4 +138,16 @@ object RootShell {
         runSuCommand("setprop coc.sandbox.traps 1")
         return true
     }
+
+    fun inputTap(x: Float, y: Float): Boolean {
+        if (!isRootAvailable) return false
+        val res = runSuCommand("input tap ${x.toInt()} ${y.toInt()}")
+        return res.success
+    }
+
+    fun inputSwipe(startX: Float, startY: Float, endX: Float, endY: Float, durationMs: Long = 300): Boolean {
+        if (!isRootAvailable) return false
+        val res = runSuCommand("input swipe ${startX.toInt()} ${startY.toInt()} ${endX.toInt()} ${endY.toInt()} $durationMs")
+        return res.success
+    }
 }

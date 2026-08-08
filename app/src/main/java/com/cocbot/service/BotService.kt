@@ -101,13 +101,56 @@ class BotService : Service() {
             val acc = AccessibilityBot.instance
             if (acc != null) {
                 _state.value = BotState.DEPLOYING_SANDBOX
-                BotLogger.info("🎮 [SANDBOX DEPLOY] Deploying Sandbox Army & Heroes...")
+                BotLogger.info("🎮 [SANDBOX DEPLOY] Deploying Sandbox Army via Accessibility Service...")
                 acc.deploySandboxArmy(BotConfig.sandboxUnits)
                 battleStart = System.currentTimeMillis()
                 _state.value = BotState.SIMULATING_BATTLE
+            } else if (RootShell.isRootAvailable) {
+                _state.value = BotState.DEPLOYING_SANDBOX
+                BotLogger.info("⚡ [SANDBOX DEPLOY] Accessibility Off -> Deploying via ROOT SHELL (input tap)...")
+                deploySandboxArmyViaRoot(BotConfig.sandboxUnits)
+                battleStart = System.currentTimeMillis()
+                _state.value = BotState.SIMULATING_BATTLE
             } else {
-                BotLogger.error("Accessibility Service belum aktif!")
+                BotLogger.error("❌ Accessibility Service & Root tidak tersedia! Aktifkan salah satu untuk auto-deploy.")
             }
+        }
+    }
+
+    private suspend fun deploySandboxArmyViaRoot(units: List<SandboxUnit>) {
+        val startSlotX = 120f
+        val slotWidth = 90f
+        val slotY = 650f
+
+        units.filter { it.enabled && it.count > 0 }.forEach { unit ->
+            val slotX = startSlotX + (unit.slotIndex * slotWidth)
+            BotLogger.info("🎮 [ROOT INPUT] Pilih ${unit.name} (Lvl ${unit.level}, Count: ${unit.count})")
+            
+            RootShell.inputTap(slotX, slotY)
+            delay(150)
+
+            when (unit.type) {
+                UnitType.TROOP -> {
+                    repeat(unit.count) {
+                        val x = 150f + Math.random().toFloat() * (1350f - 150f)
+                        val y = 100f + Math.random().toFloat() * (520f - 100f)
+                        RootShell.inputTap(x, y)
+                        delay(80)
+                    }
+                }
+                UnitType.HERO -> {
+                    RootShell.inputTap(700f + (unit.slotIndex * 40f), 350f)
+                    delay(300)
+                    RootShell.inputTap(slotX, slotY)
+                }
+                UnitType.SPELL -> {
+                    repeat(unit.count) { i ->
+                        RootShell.inputTap(600f + (i * 120f), 300f + (i * 80f))
+                        delay(250)
+                    }
+                }
+            }
+            delay(200)
         }
     }
 
@@ -136,6 +179,10 @@ class BotService : Service() {
                             acc.tap(BotConfig.BTN_END_BATTLE)
                             delay(1000)
                             acc.tap(BotConfig.BTN_OKAY)
+                        } else if (RootShell.isRootAvailable) {
+                            RootShell.inputTap(BotConfig.BTN_END_BATTLE.x, BotConfig.BTN_END_BATTLE.y)
+                            delay(1000)
+                            RootShell.inputTap(BotConfig.BTN_OKAY.x, BotConfig.BTN_OKAY.y)
                         }
                         _state.value = BotState.NETWORK_ISOLATED
                     } else {

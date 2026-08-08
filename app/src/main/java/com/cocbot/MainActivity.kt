@@ -406,15 +406,40 @@ class MainActivity : AppCompatActivity() {
             setPadding(16, 16, 16, 16)
         }
 
-        ll.addView(sectionHeader("⚙️ REQUIRED PERMISSIONS"))
+        ll.addView(sectionHeader("⚙️ PERMISSIONS & INPUT ENGINE"))
         val overlayOk = Settings.canDrawOverlays(this)
         ll.addView(permissionRow("Overlay (Floating Mod Window)", overlayOk, "Grant") {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
         })
+
         val accOk = AccessibilityBot.instance != null
         ll.addView(permissionRow("Accessibility Service (Troop Deployer)", accOk, "Open Settings") {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         })
+
+        // Root Fallback Info Card
+        val rootTouchOk = RootShell.isRootAvailable
+        val rootTouchInfo = TextView(this).apply {
+            if (accOk) {
+                text = "✅ Input Engine: Menggunakan Accessibility Service."
+                setTextColor(Color.parseColor("#00FF88"))
+            } else if (rootTouchOk) {
+                text = "⚡ Input Engine: Accessibility OFF -> Otomatis menggunakan Root Touch Injection (`input tap`) via Superuser (SU). Aplikasi TETAP BERJALAN 100%!"
+                setTextColor(Color.parseColor("#FFD700"))
+            } else {
+                text = "⚠️ Jika Aksesibilitas diblokir (\"Restricted Setting\" / \"Setelan Terbatas\") pada Android 13+:\n1. Buka Pengaturan HP > Aplikasi > COC Root Sandbox Mod\n2. Klik ikon 3 titik di pojok kanan atas\n3. Pilih \"Izinkan setelan terbatas\" / \"Allow restricted settings\"\n4. Kembali dan aktifkan Aksesibilitas."
+                setTextColor(Color.parseColor("#FFAA00"))
+            }
+            textSize = 11f
+            setBackgroundColor(Color.parseColor("#16213e"))
+            setPadding(12, 12, 12, 12)
+            setTypeface(null, Typeface.NORMAL)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, 8, 0, 12) }
+        }
+        ll.addView(rootTouchInfo)
 
         val etTimer = inputRow(ll, "Simulation Auto-End Delay (Seconds)", BotConfig.sandboxEndBattleDelaySeconds.toString())
 
