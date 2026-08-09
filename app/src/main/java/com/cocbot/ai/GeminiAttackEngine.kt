@@ -62,20 +62,22 @@ object GeminiAttackEngine {
             Analisis gambar layar pertempuran ini dengan cermat!
             
             1. Periksa LAYOUT DESA LAWAN (Posisi Town Hall, Eagle Artillery, Air Defenses, Inferno Towers, X-Bows, Clan Castle).
-            2. Periksa BAR PASUKAN DI BAGIAN BWAH LAYAR (Slot 0, 1, 2, 3, 4, 5, 6, 7, 8, 9).
+            2. Periksa BAR PASUKAN DI BAGIAN BAWAH LAYAR (Slot 0 sampai 12).
                Identifikasi jenis pasukan, Siege Machine, Heroes, dan Spell yang dibawa.
+               Catatan: Pasukan/Hero biasa berada di slot 0..7, sedangkan Spell/Mantra dan pasukan tambahan berada di slot 8..12 (perlu digeser).
             3. Tentukan apakah desa ini layak diserang berdasarkan target loot:
                - Gold Terbaca: $goldLoot (Target Min: ${BotConfig.minGoldTarget})
                - Elixir Terbaca: $elixirLoot (Target Min: ${BotConfig.minElixirTarget})
                - Dark Elixir Terbaca: $darkElixirLoot (Target Min: ${BotConfig.minDarkElixirTarget})
-               - Preset Strategi: ${BotConfig.aiStrategyPreset}
-            4. Tentukan urutan eksekusi penyerangan berdasarkan indeks slot (0 sampai 9):
-               - funnelSlots: Slot untuk pembuka jalan / Siege Machine (contoh: [0, 1])
-               - mainArmySlots: Slot untuk pasukan utama (contoh: [1, 2, 3])
-               - heroSlots: Slot untuk Heroes (King, Queen, Warden, RC) (contoh: [4, 5, 6, 7])
-               - spellSlots: Slot untuk Spell (Rage, Freeze, Heal, Poison) (contoh: [8, 9])
+               - Strategi: Buat strategi taktis mandiri (100% Dynamic AI Strategy) berdasarkan jenis & komposisi pasukan, hero, dan spell yang kamu deteksi di layar, serta kelemahan layout desa lawan.
+            4. Tentukan urutan eksekusi penyerangan berbasis taktik pertempuran nyata:
+               - funnelSlots: Slot pasukan pembersih pinggir / Siege Machine (misal: [0])
+               - mainArmySlots: Slot pasukan utama pemukul (misal: [1, 2, 3])
+               - heroSlots: Slot khusus Heroes (King, Queen, Warden, Royal Champion) (misal: [4, 5, 6, 7])
+               - spellSlots: Slot khusus Spell/Mantra (Rage, Heal, Freeze, Poison) (misal: [8, 9, 10])
                - attackDirection: "BOTTOM_LEFT", "BOTTOM_RIGHT", "TOP_LEFT", atau "TOP_RIGHT"
-               - detectedArmySummary: Rincian singkat pasukan yang terlihat di barisan bawah
+               - detectedArmySummary: Rincian singkat pasukan, hero, dan spell yang terdeteksi
+               - notes: Instruksi taktis penempatan spell dan arah serangan
 
             Berikan output HANYA dalam format JSON valid tanpa markdown formatting sebagai berikut:
             {

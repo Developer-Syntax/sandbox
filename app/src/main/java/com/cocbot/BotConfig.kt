@@ -9,7 +9,6 @@ object BotConfig {
 
     // Gemini AI Configuration
     var geminiApiKey: String = ""
-    var aiStrategyPreset: String = "Spam Electro Dragon + Balloons"
     var autoAiAttackOnFound: Boolean = true
     var autoNextIfLootLow: Boolean = true
 

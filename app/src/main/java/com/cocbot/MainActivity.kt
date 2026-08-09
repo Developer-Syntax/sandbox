@@ -438,13 +438,13 @@ class MainActivity : AppCompatActivity() {
 
         ll.addView(lootCard)
 
-        ll.addView(sectionHeader("⚔️ ATTACK STRATEGY PRESET"))
+        ll.addView(sectionHeader("🤖 DYNAMIC AI STRATEGY ENGINE"))
 
         val stratCard = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = makeCardBg(
                 fillColor = Color.parseColor("#121722"),
-                strokeColor = Color.parseColor("#1F2A3E"),
+                strokeColor = Color.parseColor("#00F0FF"),
                 strokeWidthDp = 1.5f,
                 radiusDp = 16f
             )
@@ -455,29 +455,24 @@ class MainActivity : AppCompatActivity() {
             ).apply { setMargins(0, 0, 0, dpToPx(12f)) }
         }
 
-        val strategies = listOf(
-            "Spam Electro Dragon + Balloons",
-            "BARCH Dead Base Farmer",
-            "Gowipe Ground Smash",
-            "Custom Gemini AI Decided"
-        )
+        stratCard.addView(TextView(this).apply {
+            text = "⚡ 100% DYNAMIC AI ARMY ANALYSIS"
+            textSize = 12f
+            setTextColor(Color.parseColor("#00F0FF"))
+            setTypeface(null, Typeface.BOLD)
+        })
 
-        val spinnerStrategy = Spinner(this).apply {
-            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_dropdown_item, strategies)
-            setSelection(strategies.indexOf(BotConfig.aiStrategyPreset).coerceAtLeast(0))
-            background = makeCardBg(
-                fillColor = Color.parseColor("#0B0F19"),
-                strokeColor = Color.parseColor("#1F293D"),
-                strokeWidthDp = 1f,
-                radiusDp = 10f
-            )
-            setPadding(dpToPx(12f), dpToPx(12f), dpToPx(12f), dpToPx(12f))
-        }
-        stratCard.addView(spinnerStrategy)
+        stratCard.addView(TextView(this).apply {
+            text = "Template strategi preset telah DINOAPKAN/DIHAPUS.\nGemini AI Vision secara otomatis akan menganalisis jenis pasukan, hero, dan spell yang kamu bawa di baris slot pertempuran, lalu menyusun taktik penyerangan mandiri secara real-time berdasarkan layout desa lawan."
+            textSize = 10.5f
+            setTextColor(Color.parseColor("#C9D1D9"))
+            setPadding(0, dpToPx(6f), 0, 0)
+        })
+
         ll.addView(stratCard)
 
         ll.addView(Button(this).apply {
-            text = "💾 SAVE STRATEGY SETTINGS"
+            text = "💾 SAVE LOOT TARGET SETTINGS"
             textSize = 11f
             setTypeface(null, Typeface.BOLD)
             setTextColor(Color.BLACK)
@@ -487,8 +482,7 @@ class MainActivity : AppCompatActivity() {
                 BotConfig.minGoldTarget = etMinGold.text.toString().toIntOrNull() ?: 200000
                 BotConfig.minElixirTarget = etMinElixir.text.toString().toIntOrNull() ?: 200000
                 BotConfig.minDarkElixirTarget = etMinDark.text.toString().toIntOrNull() ?: 1000
-                BotConfig.aiStrategyPreset = spinnerStrategy.selectedItem.toString()
-                Toast.makeText(this@MainActivity, "Konfigurasi Strategi Disimpan!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Target Loot Disimpan!", Toast.LENGTH_SHORT).show()
             }
         })
 
