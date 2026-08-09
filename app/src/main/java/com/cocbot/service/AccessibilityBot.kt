@@ -7,6 +7,8 @@ import android.graphics.PointF
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -16,6 +18,8 @@ class AccessibilityBot : AccessibilityService() {
         private const val TAG = "AccessibilityBot"
         var instance: AccessibilityBot? = null
     }
+
+    private val gestureMutex = Mutex()
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -31,12 +35,12 @@ class AccessibilityBot : AccessibilityService() {
         super.onDestroy()
     }
 
-    suspend fun tap(x: Float, y: Float, duration: Long = 50): Boolean {
+    suspend fun tap(x: Float, y: Float, duration: Long = 60): Boolean {
         Log.d(TAG, "[ACTION] Tap di (${x.toInt()}, ${y.toInt()})")
         return performGesture(x, y, x, y, duration)
     }
 
-    suspend fun tap(point: PointF, duration: Long = 50): Boolean {
+    suspend fun tap(point: PointF, duration: Long = 60): Boolean {
         return tap(point.x, point.y, duration)
     }
 
@@ -68,29 +72,32 @@ class AccessibilityBot : AccessibilityService() {
         startX: Float, startY: Float,
         endX: Float, endY: Float,
         duration: Long
-    ): Boolean = suspendCancellableCoroutine { cont ->
-        val path = Path().apply {
-            moveTo(startX, startY)
-            lineTo(endX, endY)
-        }
-
-        val stroke = GestureDescription.StrokeDescription(path, 0, duration)
-        val gesture = GestureDescription.Builder().addStroke(stroke).build()
-
-        val dispatched = dispatchGesture(gesture, object : GestureResultCallback() {
-            override fun onCompleted(gestureDescription: GestureDescription) {
-                if (cont.isActive) cont.resume(true)
+    ): Boolean = gestureMutex.withLock {
+        suspendCancellableCoroutine { cont ->
+            val path = Path().apply {
+                moveTo(startX, startY)
+                lineTo(endX, endY)
             }
 
-            override fun onCancelled(gestureDescription: GestureDescription) {
-                Log.w(TAG, "Gesture dibatalkan")
+            val stroke = GestureDescription.StrokeDescription(path, 0, duration)
+            val gesture = GestureDescription.Builder().addStroke(stroke).build()
+
+            val dispatched = dispatchGesture(gesture, object : GestureResultCallback() {
+                override fun onCompleted(gestureDescription: GestureDescription) {
+                    if (cont.isActive) cont.resume(true)
+                }
+
+                override fun onCancelled(gestureDescription: GestureDescription) {
+                    Log.w(TAG, "Gesture dibatalkan oleh OS")
+                    if (cont.isActive) cont.resume(false)
+                }
+            }, null)
+
+            if (!dispatched) {
+                Log.e(TAG, "Gesture gagal di-dispatch ke AccessibilityService")
                 if (cont.isActive) cont.resume(false)
             }
-        }, null)
-
-        if (!dispatched) {
-            Log.e(TAG, "Gesture gagal di-dispatch")
-            if (cont.isActive) cont.resume(false)
         }
     }
 }
+

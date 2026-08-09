@@ -179,16 +179,15 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 4, 0, 12)
         }
         btnRow2.addView(Button(this).apply {
-            text = "👁️ TEST GEMINI VISION SCAN"
-            setBackgroundColor(Color.parseColor("#00E5FF"))
+            text = "⚡ DEPLOY PASUKAN NOW"
+            setBackgroundColor(Color.parseColor("#FFD700"))
             setTextColor(Color.BLACK)
             setTypeface(null, Typeface.BOLD)
             textSize = 11f
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { marginEnd = 6 }
             setOnClickListener {
-                val screen = ScreenCaptureService.getInstance()?.captureScreen()
-                BotService.getInstance()?.triggerSingleAiAnalysisAndAttack(screen)
-                Toast.makeText(this@MainActivity, "🤖 Memulai analisis Gemini Vision...", Toast.LENGTH_SHORT).show()
+                BotService.getInstance()?.triggerForceDeployNow()
+                Toast.makeText(this@MainActivity, "⚡ Mengerahkan seluruh pasukan!", Toast.LENGTH_SHORT).show()
             }
         })
         btnRow2.addView(Button(this).apply {

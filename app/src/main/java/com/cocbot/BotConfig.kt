@@ -1,12 +1,15 @@
 package com.cocbot
 
+import android.content.res.Resources
 import android.graphics.PointF
+import kotlin.math.max
+import kotlin.math.min
 
 object BotConfig {
 
     // Gemini AI Configuration
     var geminiApiKey: String = ""
-    var aiStrategyPreset: String = "Spam Electro Dragon + Balloons" // Options: "Spam Electro Dragon + Balloons", "BARCH Dead Base Farmer", "Gowipe Ground Smash", "Custom AI Gemini Decided"
+    var aiStrategyPreset: String = "Spam Electro Dragon + Balloons"
     var autoAiAttackOnFound: Boolean = true
     var autoNextIfLootLow: Boolean = true
 
@@ -15,40 +18,58 @@ object BotConfig {
     var minElixirTarget: Int = 200000
     var minDarkElixirTarget: Int = 1000
 
-    // Navigation Coordinates for Full Automation Loop
-    val BTN_HOME_ATTACK = PointF(120f, 650f)
-    val BTN_FIND_MATCH = PointF(1200f, 550f)
-    val BTN_NEXT_BASE = PointF(1530f, 540f)
-    val BTN_ATTACK_CONFIRM = PointF(1400f, 600f)
-    val BTN_END_BATTLE = PointF(150f, 540f)
-    val BTN_OKAY = PointF(800f, 500f)
-    val BTN_RETURN_HOME = PointF(150f, 540f)
-
-    // Deployment Lines
-    val DEPLOY_BOTTOM_LEFT_START = PointF(300f, 500f)
-    val DEPLOY_BOTTOM_LEFT_END = PointF(800f, 650f)
-
-    val DEPLOY_BOTTOM_RIGHT_START = PointF(800f, 650f)
-    val DEPLOY_BOTTOM_RIGHT_END = PointF(1300f, 500f)
-
-    val DEPLOY_TOP_LEFT_START = PointF(300f, 500f)
-    val DEPLOY_TOP_LEFT_END = PointF(800f, 100f)
-
-    val DEPLOY_TOP_RIGHT_START = PointF(800f, 100f)
-    val DEPLOY_TOP_RIGHT_END = PointF(1300f, 500f)
-
-    // Troop Slot Buttons (Horizontal Bar at bottom of battle screen)
-    val SLOT_0 = PointF(120f, 660f)
-    val SLOT_1 = PointF(200f, 660f)
-    val SLOT_2 = PointF(280f, 660f)
-    val SLOT_3 = PointF(360f, 660f)
-    val SLOT_4 = PointF(440f, 660f)
-    val SLOT_5 = PointF(520f, 660f)
-    val SLOT_6 = PointF(600f, 660f)
-    val SLOT_7 = PointF(680f, 660f)
-    val SLOT_8 = PointF(760f, 660f)
-    val SLOT_9 = PointF(840f, 660f)
-
     var delayBetweenWavesMs: Long = 400L
     var endBattleWaitSec: Int = 120
+
+    // Dynamic Resolution Helper
+    fun getScreenLandscapeWidth(): Float {
+        val dm = Resources.getSystem().displayMetrics
+        return max(dm.widthPixels, dm.heightPixels).toFloat()
+    }
+
+    fun getScreenLandscapeHeight(): Float {
+        val dm = Resources.getSystem().displayMetrics
+        return min(dm.widthPixels, dm.heightPixels).toFloat()
+    }
+
+    fun getRelPoint(pctX: Float, pctY: Float): PointF {
+        val w = getScreenLandscapeWidth()
+        val h = getScreenLandscapeHeight()
+        return PointF(w * pctX, h * pctY)
+    }
+
+    // Navigation Buttons (Percentage based)
+    val BTN_HOME_ATTACK get() = getRelPoint(0.08f, 0.88f)
+    val BTN_FIND_MATCH get() = getRelPoint(0.82f, 0.65f)
+    val BTN_NEXT_BASE get() = getRelPoint(0.92f, 0.78f)
+    val BTN_ATTACK_CONFIRM get() = getRelPoint(0.85f, 0.80f)
+    val BTN_END_BATTLE get() = getRelPoint(0.08f, 0.78f)
+    val BTN_OKAY get() = getRelPoint(0.50f, 0.70f)
+    val BTN_RETURN_HOME get() = getRelPoint(0.10f, 0.88f)
+
+    // Troop Slot Bar Buttons (Bottom Horizontal Bar)
+    val SLOT_0 get() = getRelPoint(0.08f, 0.90f)
+    val SLOT_1 get() = getRelPoint(0.14f, 0.90f)
+    val SLOT_2 get() = getRelPoint(0.20f, 0.90f)
+    val SLOT_3 get() = getRelPoint(0.26f, 0.90f)
+    val SLOT_4 get() = getRelPoint(0.32f, 0.90f)
+    val SLOT_5 get() = getRelPoint(0.38f, 0.90f)
+    val SLOT_6 get() = getRelPoint(0.44f, 0.90f)
+    val SLOT_7 get() = getRelPoint(0.50f, 0.90f)
+    val SLOT_8 get() = getRelPoint(0.56f, 0.90f)
+    val SLOT_9 get() = getRelPoint(0.62f, 0.90f)
+
+    // Deployment Lines (In map arena)
+    val DEPLOY_BOTTOM_LEFT_START get() = getRelPoint(0.20f, 0.65f)
+    val DEPLOY_BOTTOM_LEFT_END get() = getRelPoint(0.50f, 0.82f)
+
+    val DEPLOY_BOTTOM_RIGHT_START get() = getRelPoint(0.50f, 0.82f)
+    val DEPLOY_BOTTOM_RIGHT_END get() = getRelPoint(0.80f, 0.65f)
+
+    val DEPLOY_TOP_LEFT_START get() = getRelPoint(0.20f, 0.65f)
+    val DEPLOY_TOP_LEFT_END get() = getRelPoint(0.50f, 0.25f)
+
+    val DEPLOY_TOP_RIGHT_START get() = getRelPoint(0.50f, 0.25f)
+    val DEPLOY_TOP_RIGHT_END get() = getRelPoint(0.80f, 0.65f)
 }
+

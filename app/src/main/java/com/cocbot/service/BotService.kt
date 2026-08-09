@@ -163,8 +163,32 @@ class BotService : Service() {
         }
     }
 
+    fun triggerForceDeployNow() {
+        scope.launch {
+            BotLogger.info("⚡ [FORCE DEPLOY] Mengerahkkan seluruh pasukan, hero, dan spell secara langsung!")
+            val forcePlan = GeminiAttackPlan(
+                shouldAttack = true,
+                estimatedStars = 3,
+                reason = "Di-trigger manual oleh pengguna",
+                attackDirection = "BOTTOM_LEFT",
+                deployFunnelFirst = true,
+                heroDeploymentDelaySec = 2,
+                spellPositions = listOf("Center"),
+                notes = "Force deploy"
+            )
+            _state.value = BotState.DEPLOYING_AI_ATTACK
+            executeGeminiAttackPlan(forcePlan)
+            battleStartTime = System.currentTimeMillis()
+            _state.value = BotState.IN_BATTLE
+        }
+    }
+
     private suspend fun executeGeminiAttackPlan(plan: GeminiAttackPlan) {
         BotLogger.info("⚔️ [AI AUTO ATTACK] Memulai eksekusi penyerangan otomatis (${plan.attackDirection})...")
+
+        if (AccessibilityBot.instance == null && !RootShell.isRootAvailable) {
+            BotLogger.error("❌ CRITICAL: Accessibility Service belum diaktifkan! Buka aplikasi > Tab API & PERMIT > Aktifkan Accessibility.")
+        }
 
         val (startPos, endPos) = when (plan.attackDirection) {
             "TOP_LEFT" -> Pair(BotConfig.DEPLOY_TOP_LEFT_START, BotConfig.DEPLOY_TOP_LEFT_END)
@@ -173,42 +197,46 @@ class BotService : Service() {
             else -> Pair(BotConfig.DEPLOY_BOTTOM_LEFT_START, BotConfig.DEPLOY_BOTTOM_LEFT_END)
         }
 
-        // Step 1: Deploy Funneling / Siege Machine (Slot 0 & Slot 1)
-        BotLogger.info("🚀 Wave 1: Deploy Funneling & Siege Machine...")
-        tapPoint(BotConfig.SLOT_0)
-        delay(150)
-        tapPoint(startPos)
-        delay(200)
+        val centerPos = BotConfig.getRelPoint(0.50f, 0.45f)
 
-        // Step 2: Deploy Main Army (Slots 2, 3, 4, 5)
+        // Step 1: Deploy Funneling / Siege Machine (Slot 0 & Slot 1)
+        BotLogger.info("🚀 Wave 1: Deploy Funneling & Siege Machine (Slot 0 & 1)...")
+        tapPoint(BotConfig.SLOT_0)
+        delay(300)
+        tapPoint(startPos)
+        delay(250)
+
+        // Step 2: Deploy Main Army (Slots 1, 2, 3)
         BotLogger.info("🐉 Wave 2: Deploy Main Army (${BotConfig.aiStrategyPreset})...")
         for (slot in listOf(BotConfig.SLOT_1, BotConfig.SLOT_2, BotConfig.SLOT_3)) {
             tapPoint(slot)
-            delay(150)
-            for (i in 0..5) {
-                val stepX = startPos.x + (endPos.x - startPos.x) * (i / 5f)
-                val stepY = startPos.y + (endPos.y - startPos.y) * (i / 5f)
+            delay(300)
+            for (i in 0..6) {
+                val stepX = startPos.x + (endPos.x - startPos.x) * (i / 6f)
+                val stepY = startPos.y + (endPos.y - startPos.y) * (i / 6f)
                 tapPoint(stepX, stepY)
-                delay(100)
+                delay(120)
             }
         }
 
-        // Step 3: Deploy Heroes (Slots 6, 7, 8, 9)
-        BotLogger.info("👑 Wave 3: Deploy Heroes (Barbarian King, Queen, Warden, Royal Champion)...")
+        // Step 3: Deploy Heroes (Slots 4, 5, 6, 7)
+        BotLogger.info("👑 Wave 3: Deploy Heroes (King, Queen, Warden, RC)...")
         for (slot in listOf(BotConfig.SLOT_4, BotConfig.SLOT_5, BotConfig.SLOT_6, BotConfig.SLOT_7)) {
             tapPoint(slot)
-            delay(150)
-            tapPoint((startPos.x + endPos.x) / 2f, (startPos.y + endPos.y) / 2f)
-            delay(200)
+            delay(300)
+            val heroDeployX = (startPos.x + endPos.x) / 2f
+            val heroDeployY = (startPos.y + endPos.y) / 2f
+            tapPoint(heroDeployX, heroDeployY)
+            delay(250)
         }
 
         // Step 4: Drop Spells (Slots 8, 9)
         BotLogger.info("✨ Wave 4: Drop Spells ke area pertahanan lawan...")
         for (slot in listOf(BotConfig.SLOT_8, BotConfig.SLOT_9)) {
             tapPoint(slot)
-            delay(150)
-            tapPoint(800f, 400f)
-            delay(250)
+            delay(300)
+            tapPoint(centerPos.x, centerPos.y)
+            delay(300)
         }
 
         BotLogger.info("🔥 [AI AUTO ATTACK COMPLETE] Seluruh pasukan, hero, dan spell telah diturunkan!")
@@ -249,6 +277,8 @@ class BotService : Service() {
             acc.tap(x, y)
         } else if (RootShell.isRootAvailable) {
             RootShell.inputTap(x, y)
+        } else {
+            BotLogger.error("❌ GAGAL TAP (${x.toInt()}, ${y.toInt()}): Accessibility Service TIDAK AKTIF! Buka Pengaturan HP > Aksesibilitas > Aktifkan CoC Bot.")
         }
     }
 

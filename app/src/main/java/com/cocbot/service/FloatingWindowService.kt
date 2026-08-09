@@ -110,6 +110,19 @@ class FloatingWindowService : Service() {
         }
         btnPanel.addView(btnScanNow)
 
+        val btnForceDeploy = Button(this).apply {
+            text = "⚡ DEPLOY PASUKAN SEKARANG"
+            textSize = 10f
+            setTextColor(Color.BLACK)
+            setTypeface(null, Typeface.BOLD)
+            setBackgroundColor(Color.parseColor("#FFD700"))
+            setOnClickListener {
+                BotService.getInstance()?.triggerForceDeployNow()
+                Toast.makeText(this@FloatingWindowService, "⚡ Mengerahkan seluruh pasukan!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnPanel.addView(btnForceDeploy)
+
         val btnStartBot = Button(this).apply {
             text = "⚔️ START AI AUTO ATTACK"
             textSize = 10f
