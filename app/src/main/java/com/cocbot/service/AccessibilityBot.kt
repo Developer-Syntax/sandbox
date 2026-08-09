@@ -6,6 +6,8 @@ import android.graphics.Path
 import android.graphics.PointF
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import com.cocbot.BotLogger
+import com.cocbot.state.BotState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -16,23 +18,76 @@ class AccessibilityBot : AccessibilityService() {
 
     companion object {
         private const val TAG = "AccessibilityBot"
+        const val GAME_PACKAGE = "com.supercell.clashofclans"
+        const val BOT_PACKAGE = "com.cocbot"
         var instance: AccessibilityBot? = null
     }
 
     private val gestureMutex = Mutex()
+    private var lastActivePackage: String = GAME_PACKAGE
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
         Log.d(TAG, "AccessibilityBot terhubung")
+        BotLogger.system("🟢 [ACCESSIBILITY SERVICE] Accessibility Service Connected & Active Game Connection Listener initialized.")
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
-    override fun onInterrupt() {}
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event == null) return
+
+        val pkgName = event.packageName?.toString() ?: return
+
+        // Track active foreground packages
+        if (pkgName.isNotEmpty() && pkgName != BOT_PACKAGE && !pkgName.contains("inputmethod")) {
+            lastActivePackage = pkgName
+        }
+
+        val botService = BotService.getInstance() ?: return
+        val currentState = botService.state.value
+
+        // Specifically monitor the 'In Battle' state and active combat phases
+        val isInBattleState = currentState == BotState.IN_BATTLE ||
+                currentState == BotState.DEPLOYING_AI_ATTACK ||
+                currentState == BotState.WAITING_HERO_ABILITIES ||
+                currentState == BotState.ENDING_BATTLE
+
+        if (isInBattleState) {
+            val eventType = event.eventType
+            if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+                eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+
+                // Trigger safety-stop if foreground app switches away from Clash of Clans during battle
+                if (pkgName.isNotEmpty() &&
+                    pkgName != GAME_PACKAGE &&
+                    pkgName != BOT_PACKAGE &&
+                    !pkgName.contains("inputmethod")) {
+
+                    BotLogger.warning("🛑 [SAFETY STOP] Game process connection lost during '$currentState' state! Active app: $pkgName. Stopping AI Bot for safety!")
+                    botService.stopBot()
+                }
+            }
+        }
+    }
+
+    override fun onInterrupt() {
+        Log.w(TAG, "AccessibilityService Interrupted")
+        triggerSafetyStopIfActive("Accessibility Service Interrupted")
+    }
 
     override fun onDestroy() {
+        triggerSafetyStopIfActive("Accessibility Service Disconnected/Destroyed")
         instance = null
         super.onDestroy()
+    }
+
+    private fun triggerSafetyStopIfActive(reason: String) {
+        val botService = BotService.getInstance() ?: return
+        val currentState = botService.state.value
+        if (currentState != BotState.IDLE) {
+            BotLogger.warning("🛑 [SAFETY STOP] $reason during '$currentState' state! Stopping AI Bot immediately for safety.")
+            botService.stopBot()
+        }
     }
 
     suspend fun tap(x: Float, y: Float, duration: Long = 60): Boolean {

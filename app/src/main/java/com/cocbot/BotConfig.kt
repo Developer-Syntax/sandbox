@@ -59,6 +59,18 @@ object BotConfig {
     val SLOT_8 get() = getRelPoint(0.56f, 0.90f)
     val SLOT_9 get() = getRelPoint(0.62f, 0.90f)
 
+    fun getSlotPoint(index: Int): PointF? {
+        val pctX = 0.08f + (index * 0.06f)
+        return if (index in 0..12) getRelPoint(pctX, 0.90f) else null
+    }
+
+    // Troop Bar Horizontal Scrolling Coordinates
+    val TROOP_BAR_SWIPE_RIGHT_TO_LEFT_START get() = getRelPoint(0.70f, 0.90f)
+    val TROOP_BAR_SWIPE_RIGHT_TO_LEFT_END get() = getRelPoint(0.20f, 0.90f)
+
+    val TROOP_BAR_SWIPE_LEFT_TO_RIGHT_START get() = getRelPoint(0.20f, 0.90f)
+    val TROOP_BAR_SWIPE_LEFT_TO_RIGHT_END get() = getRelPoint(0.70f, 0.90f)
+
     // Deployment Lines (In map arena)
     val DEPLOY_BOTTOM_LEFT_START get() = getRelPoint(0.20f, 0.65f)
     val DEPLOY_BOTTOM_LEFT_END get() = getRelPoint(0.50f, 0.82f)

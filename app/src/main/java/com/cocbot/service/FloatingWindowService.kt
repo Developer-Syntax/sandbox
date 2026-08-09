@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
 import android.view.*
 import android.widget.*
@@ -37,6 +38,31 @@ class FloatingWindowService : Service() {
         createFloatingWindow()
     }
 
+    private fun dpToPx(dp: Float): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    private fun makeOverlayBg(): GradientDrawable {
+        val density = resources.displayMetrics.density
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(Color.parseColor("#F00A0E17"))
+            setStroke((1.5f * density).toInt(), Color.parseColor("#00F0FF"))
+            cornerRadius = 16f * density
+        }
+    }
+
+    private fun makeBtnBg(startColor: Int, endColor: Int): GradientDrawable {
+        val density = resources.displayMetrics.density
+        return GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(startColor, endColor)
+        ).apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 10f * density
+        }
+    }
+
     private fun createFloatingWindow() {
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -46,13 +72,14 @@ class FloatingWindowService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = 0; y = 200
+            x = 10; y = 200
         }
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor("#EE0B0E14"))
-            setPadding(12, 12, 12, 12)
+            background = makeOverlayBg()
+            setPadding(dpToPx(12f), dpToPx(10f), dpToPx(12f), dpToPx(10f))
+            elevation = dpToPx(8f).toFloat()
         }
 
         // Header
@@ -62,19 +89,20 @@ class FloatingWindowService : Service() {
         }
 
         val tvTitle = TextView(this).apply {
-            text = "🤖 GEMINI AI BOT"
-            textSize = 12f
-            setTextColor(Color.parseColor("#00E5FF"))
+            text = "⚡ GEMINI BOT"
+            textSize = 11f
+            setTextColor(Color.parseColor("#00F0FF"))
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
-        val btnToggle = Button(this).apply {
+        val btnToggle = TextView(this).apply {
             text = "▼"
             textSize = 10f
             setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#1F2937"))
-            layoutParams = LinearLayout.LayoutParams(60, 44)
+            gravity = Gravity.CENTER
+            background = makeBtnBg(Color.parseColor("#1A2638"), Color.parseColor("#25364F"))
+            layoutParams = LinearLayout.LayoutParams(dpToPx(28f), dpToPx(28f))
         }
 
         header.addView(tvTitle)
@@ -83,9 +111,10 @@ class FloatingWindowService : Service() {
 
         val tvAiStatus = TextView(this).apply {
             text = "STATUS: IDLE"
-            textSize = 10f
-            setTextColor(Color.parseColor("#FFD700"))
-            setPadding(0, 4, 0, 4)
+            textSize = 9f
+            setTextColor(Color.parseColor("#00FF88"))
+            setTypeface(Typeface.MONOSPACE)
+            setPadding(0, dpToPx(4f), 0, dpToPx(4f))
         }
         root.addView(tvAiStatus)
 
@@ -93,77 +122,57 @@ class FloatingWindowService : Service() {
         val btnPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             visibility = View.GONE
-            setPadding(0, 8, 0, 0)
+            setPadding(0, dpToPx(6f), 0, 0)
         }
 
-        val btnScanNow = Button(this).apply {
-            text = "👁️ GEMINI VISION SCAN"
-            textSize = 10f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            setBackgroundColor(Color.parseColor("#00E5FF"))
-            setOnClickListener {
-                val screen = ScreenCaptureService.getInstance()?.captureScreen()
-                BotService.getInstance()?.triggerSingleAiAnalysisAndAttack(screen)
-                Toast.makeText(this@FloatingWindowService, "🤖 Memulai analisis Gemini AI Vision...", Toast.LENGTH_SHORT).show()
-            }
-        }
-        btnPanel.addView(btnScanNow)
-
-        val btnForceDeploy = Button(this).apply {
-            text = "⚡ DEPLOY PASUKAN SEKARANG"
-            textSize = 10f
-            setTextColor(Color.BLACK)
-            setTypeface(null, Typeface.BOLD)
-            setBackgroundColor(Color.parseColor("#FFD700"))
-            setOnClickListener {
-                BotService.getInstance()?.triggerForceDeployNow()
-                Toast.makeText(this@FloatingWindowService, "⚡ Mengerahkan seluruh pasukan!", Toast.LENGTH_SHORT).show()
-            }
-        }
-        btnPanel.addView(btnForceDeploy)
-
-        val btnStartBot = Button(this).apply {
-            text = "⚔️ START AI AUTO ATTACK"
-            textSize = 10f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            setBackgroundColor(Color.parseColor("#00C853"))
-            setOnClickListener {
-                BotService.getInstance()?.startBot()
-                Toast.makeText(this@FloatingWindowService, "🤖 Bot Auto Attack Dimulai!", Toast.LENGTH_SHORT).show()
-            }
-        }
-        btnPanel.addView(btnStartBot)
-
-        val btnStopBot = Button(this).apply {
-            text = "🛑 STOP AI BOT"
-            textSize = 10f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#D50000"))
-            setOnClickListener {
-                BotService.getInstance()?.stopBot()
-                Toast.makeText(this@FloatingWindowService, "🛑 Bot Dihentikan", Toast.LENGTH_SHORT).show()
-            }
-        }
-        btnPanel.addView(btnStopBot)
-
-        val btnOpenCoc = Button(this).apply {
-            text = "⚔️ OPEN CLASH OF CLANS"
-            textSize = 10f
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#6A1B9A"))
-            setOnClickListener {
-                val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
-                if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(launchIntent)
-                } else {
-                    Toast.makeText(this@FloatingWindowService, "Clash of Clans tidak ditemukan!", Toast.LENGTH_SHORT).show()
+        fun addButton(label: String, startColor: Int, endColor: Int, isBlackText: Boolean = false, onClick: () -> Unit) {
+            val btn = Button(this).apply {
+                text = label
+                textSize = 9.5f
+                setTypeface(null, Typeface.BOLD)
+                setTextColor(if (isBlackText) Color.BLACK else Color.WHITE)
+                background = makeBtnBg(startColor, endColor)
+                layoutParams = LinearLayout.LayoutParams(
+                    dpToPx(180f),
+                    dpToPx(36f)
+                ).apply {
+                    topMargin = dpToPx(4f)
                 }
+                setOnClickListener { onClick() }
+            }
+            btnPanel.addView(btn)
+        }
+
+        addButton("👁️ GEMINI VISION SCAN", Color.parseColor("#00B0FF"), Color.parseColor("#00838F")) {
+            val screen = ScreenCaptureService.getInstance()?.captureScreen()
+            BotService.getInstance()?.triggerSingleAiAnalysisAndAttack(screen)
+            Toast.makeText(this@FloatingWindowService, "🤖 Memulai analisis Gemini AI Vision...", Toast.LENGTH_SHORT).show()
+        }
+
+        addButton("⚡ DEPLOY ALL ARMY", Color.parseColor("#FFC107"), Color.parseColor("#FF8F00"), isBlackText = true) {
+            BotService.getInstance()?.triggerForceDeployNow()
+            Toast.makeText(this@FloatingWindowService, "⚡ Mengerahkan seluruh pasukan!", Toast.LENGTH_SHORT).show()
+        }
+
+        addButton("⚔️ START AI AUTO ATTACK", Color.parseColor("#00E676"), Color.parseColor("#00B0FF")) {
+            BotService.getInstance()?.startBot()
+            Toast.makeText(this@FloatingWindowService, "🤖 Bot Auto Attack Dimulai!", Toast.LENGTH_SHORT).show()
+        }
+
+        addButton("🛑 STOP AI BOT", Color.parseColor("#FF1744"), Color.parseColor("#D50000")) {
+            BotService.getInstance()?.stopBot()
+            Toast.makeText(this@FloatingWindowService, "🛑 Bot Dihentikan", Toast.LENGTH_SHORT).show()
+        }
+
+        addButton("⚔️ OPEN CLASH OF CLANS", Color.parseColor("#7C4DFF"), Color.parseColor("#512DA8")) {
+            val launchIntent = packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
+            if (launchIntent != null) {
+                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(launchIntent)
+            } else {
+                Toast.makeText(this@FloatingWindowService, "Clash of Clans tidak ditemukan!", Toast.LENGTH_SHORT).show()
             }
         }
-        btnPanel.addView(btnOpenCoc)
 
         root.addView(btnPanel)
         floatView = root
@@ -194,27 +203,53 @@ class FloatingWindowService : Service() {
 
         wm.addView(floatView, params)
 
+        // Live Log Observation for Floating Overlay
         scope.launch {
-            BotService.getInstance()?.state?.collectLatest { state ->
-                tvAiStatus.text = "STATUS: $state"
-                tvAiStatus.setTextColor(
-                    when (state) {
-                        BotState.IN_BATTLE -> Color.parseColor("#00E5FF")
-                        BotState.DEPLOYING_AI_ATTACK -> Color.parseColor("#00FF88")
-                        BotState.ANALYZING_WITH_GEMINI -> Color.parseColor("#FFD700")
-                        else -> Color.parseColor("#AAAAAA")
+            BotLogger.logs.collectLatest { list ->
+                val lastEntry = list.lastOrNull()
+                if (lastEntry != null) {
+                    tvAiStatus.text = "[${lastEntry.timestamp}] ${lastEntry.message.take(28)}"
+                }
+            }
+        }
+
+        // Live Service State Monitoring Loop
+        scope.launch {
+            while (isActive) {
+                val service = BotService.getInstance()
+                if (service != null) {
+                    val job = launch {
+                        service.state.collectLatest { state ->
+                            tvAiStatus.setTextColor(
+                                when (state) {
+                                    BotState.IN_BATTLE -> Color.parseColor("#FF1744")
+                                    BotState.DEPLOYING_AI_ATTACK -> Color.parseColor("#00FF88")
+                                    BotState.ANALYZING_WITH_GEMINI -> Color.parseColor("#FFC107")
+                                    else -> Color.parseColor("#00F0FF")
+                                }
+                            )
+                        }
                     }
-                )
+                    while (BotService.getInstance() == service && isActive) {
+                        delay(1000)
+                    }
+                    job.cancel()
+                } else {
+                    delay(1000)
+                }
             }
         }
     }
 
     override fun onDestroy() {
         scope.cancel()
-        wm.removeView(floatView)
+        if (::floatView.isInitialized) {
+            try { wm.removeView(floatView) } catch (e: Exception) {}
+        }
         instance = null
         super.onDestroy()
     }
 
     override fun onBind(i: Intent?): IBinder? = null
 }
+

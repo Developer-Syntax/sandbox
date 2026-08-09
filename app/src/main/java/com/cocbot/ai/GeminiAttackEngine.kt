@@ -20,9 +20,11 @@ data class GeminiAttackPlan(
     val estimatedStars: Int,
     val reason: String,
     val attackDirection: String, // "TOP_LEFT", "TOP_RIGHT", "BOTTOM_LEFT", "BOTTOM_RIGHT"
-    val deployFunnelFirst: Boolean,
-    val heroDeploymentDelaySec: Int,
-    val spellPositions: List<String>,
+    val funnelSlots: List<Int>,
+    val mainArmySlots: List<Int>,
+    val heroSlots: List<Int>,
+    val spellSlots: List<Int>,
+    val detectedArmySummary: String,
     val notes: String
 )
 
@@ -57,26 +59,36 @@ object GeminiAttackEngine {
 
         val promptText = """
             Anda adalah Super AI Master Strategi Clash of Clans (CoC).
-            Analisis gambar desa lawan ini dan berikan rencana serangan otomatis.
+            Analisis gambar layar pertempuran ini dengan cermat!
             
-            Loot Terbaca:
-            - Gold: $goldLoot
-            - Elixir: $elixirLoot
-            - Dark Elixir: $darkElixirLoot
-            - Preferred Strategy: ${BotConfig.aiStrategyPreset}
-            - Min Gold Target: ${BotConfig.minGoldTarget}
-            - Min Elixir Target: ${BotConfig.minElixirTarget}
+            1. Periksa LAYOUT DESA LAWAN (Posisi Town Hall, Eagle Artillery, Air Defenses, Inferno Towers, X-Bows, Clan Castle).
+            2. Periksa BAR PASUKAN DI BAGIAN BWAH LAYAR (Slot 0, 1, 2, 3, 4, 5, 6, 7, 8, 9).
+               Identifikasi jenis pasukan, Siege Machine, Heroes, dan Spell yang dibawa.
+            3. Tentukan apakah desa ini layak diserang berdasarkan target loot:
+               - Gold Terbaca: $goldLoot (Target Min: ${BotConfig.minGoldTarget})
+               - Elixir Terbaca: $elixirLoot (Target Min: ${BotConfig.minElixirTarget})
+               - Dark Elixir Terbaca: $darkElixirLoot (Target Min: ${BotConfig.minDarkElixirTarget})
+               - Preset Strategi: ${BotConfig.aiStrategyPreset}
+            4. Tentukan urutan eksekusi penyerangan berdasarkan indeks slot (0 sampai 9):
+               - funnelSlots: Slot untuk pembuka jalan / Siege Machine (contoh: [0, 1])
+               - mainArmySlots: Slot untuk pasukan utama (contoh: [1, 2, 3])
+               - heroSlots: Slot untuk Heroes (King, Queen, Warden, RC) (contoh: [4, 5, 6, 7])
+               - spellSlots: Slot untuk Spell (Rage, Freeze, Heal, Poison) (contoh: [8, 9])
+               - attackDirection: "BOTTOM_LEFT", "BOTTOM_RIGHT", "TOP_LEFT", atau "TOP_RIGHT"
+               - detectedArmySummary: Rincian singkat pasukan yang terlihat di barisan bawah
 
             Berikan output HANYA dalam format JSON valid tanpa markdown formatting sebagai berikut:
             {
-              "shouldAttack": true/false,
-              "estimatedStars": 1 hingga 3,
-              "reason": "Alasan singkat analisis layout dan loot",
-              "attackDirection": "BOTTOM_LEFT" atau "BOTTOM_RIGHT" atau "TOP_LEFT" atau "TOP_RIGHT",
-              "deployFunnelFirst": true/false,
-              "heroDeploymentDelaySec": 3,
-              "spellPositions": ["Core Rage", "Freeze Air Defense"],
-              "notes": "Rekomendasi khusus"
+              "shouldAttack": true,
+              "estimatedStars": 3,
+              "reason": "Menyerang dari BOTTOM_LEFT mendekati Eagle Artillery dan Air Defense untuk maksimalkan nilai Electro Dragon.",
+              "attackDirection": "BOTTOM_LEFT",
+              "funnelSlots": [0],
+              "mainArmySlots": [1, 2, 3],
+              "heroSlots": [4, 5, 6, 7],
+              "spellSlots": [8, 9],
+              "detectedArmySummary": "10x Electro Dragon, 8x Balloon, King, Queen, Warden, RC, 3x Rage, 3x Freeze",
+              "notes": "Luncurkan Electro Dragon & Balloons menyebar sepanjang garis bawah."
             }
         """.trimIndent()
 
@@ -114,7 +126,7 @@ object GeminiAttackEngine {
                 .post(jsonBody.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
-            BotLogger.info("🤖 [GEMINI AI VISION] Mengirim tangkapan layar desa ke Gemini 3.5 Flash...")
+            BotLogger.info("🤖 [GEMINI AI VISION] Menganalisis layout desa & barisan pasukan di layar...")
 
             client.newCall(request).execute().use { response ->
                 val respStr = response.body?.string() ?: ""
@@ -130,7 +142,7 @@ object GeminiAttackEngine {
                     val candParts = candContent?.optJSONArray("parts")
                     if (candParts != null && candParts.length() > 0) {
                         val aiText = candParts.getJSONObject(0).optString("text")
-                        BotLogger.info("✅ [GEMINI AI RESPONSE] $aiText")
+                        BotLogger.info("✅ [GEMINI AI VISION DECISION] $aiText")
                         return@withContext parseAiPlan(aiText, goldLoot, elixirLoot)
                     }
                 }
@@ -146,14 +158,26 @@ object GeminiAttackEngine {
         return try {
             val cleanJson = jsonStr.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
             val obj = JSONObject(cleanJson)
+
+            fun parseSlotList(key: String, defaultList: List<Int>): List<Int> {
+                val arr = obj.optJSONArray(key) ?: return defaultList
+                val list = mutableListOf<Int>()
+                for (i in 0 until arr.length()) {
+                    list.add(arr.getInt(i))
+                }
+                return if (list.isEmpty()) defaultList else list
+            }
+
             GeminiAttackPlan(
                 shouldAttack = obj.optBoolean("shouldAttack", true),
                 estimatedStars = obj.optInt("estimatedStars", 2),
                 reason = obj.optString("reason", "Disetujui oleh Gemini AI Vision"),
                 attackDirection = obj.optString("attackDirection", "BOTTOM_LEFT"),
-                deployFunnelFirst = obj.optBoolean("deployFunnelFirst", true),
-                heroDeploymentDelaySec = obj.optInt("heroDeploymentDelaySec", 3),
-                spellPositions = emptyList(),
+                funnelSlots = parseSlotList("funnelSlots", listOf(0, 1)),
+                mainArmySlots = parseSlotList("mainArmySlots", listOf(1, 2, 3)),
+                heroSlots = parseSlotList("heroSlots", listOf(4, 5, 6, 7)),
+                spellSlots = parseSlotList("spellSlots", listOf(8, 9)),
+                detectedArmySummary = obj.optString("detectedArmySummary", "Pasukan terdeteksi di slot 0-9"),
                 notes = obj.optString("notes", "Auto AI attack execution")
             )
         } catch (e: Exception) {
@@ -168,9 +192,11 @@ object GeminiAttackEngine {
             estimatedStars = if (meetsLoot) 2 else 0,
             reason = if (meetsLoot) "Loot memenuhi target (Gold: $gold, Elixir: $elixir)" else "Loot di bawah batas minimum",
             attackDirection = "BOTTOM_LEFT",
-            deployFunnelFirst = true,
-            heroDeploymentDelaySec = 3,
-            spellPositions = listOf("Core Rage"),
+            funnelSlots = listOf(0, 1),
+            mainArmySlots = listOf(1, 2, 3),
+            heroSlots = listOf(4, 5, 6, 7),
+            spellSlots = listOf(8, 9),
+            detectedArmySummary = "Standard Army (Troops, Heroes & Spells di Slot 0-9)",
             notes = "Rule-based AI Fallback Plan"
         )
     }
